@@ -20,17 +20,20 @@ import java.io.IOException;
 public class Interfaz {
     
     public static SistemaViajes cargarDatos(String direccion){
-        SistemaViajes sistema = new SistemaViajes();
-        
-        
+    //realiza la precarga de los datos
+    SistemaViajes sistema = new SistemaViajes();
+   
+          
         try {
             BufferedReader bf = new BufferedReader(new FileReader(direccion));
             String lecturaBf, p1,p2,p3,p4,p5,p6,p7;
+            
             while (((lecturaBf = bf.readLine()) != null)){
-                String[] partes = lecturaBf.split(",");
-                //la parte 0 es lo que indica si es aeropuerto vuelo pasaje o cliente
+                String[] partes = lecturaBf.split(","); //este split es para ir separando la cadena por ","
+                //la parte 0 es lo que indica si es aeropuerto,vuelo,pasaje,cliente o viaje
                 switch (lecturaBf.charAt(0)){
                     case 'A':
+                        //opera sobre los aeropuertos
                         p1 = partes[0];
                         p1 = p1.substring(2);
                         p2 = partes[1];
@@ -38,6 +41,7 @@ public class Interfaz {
                         sistema.agregarAeropuerto(p1,p2, Integer.parseInt(p3));
                         break;
                     case 'V':
+                        //opera sobre los vuelos
                         p1 = partes[0];
                         p1 = p1.substring(2);
                         p2 = partes[1];
@@ -47,6 +51,7 @@ public class Interfaz {
                         sistema.agregarVuelo(p1,p2,p3,p4,p5);
                         break;
                     case 'C':
+                        //opera sobre los clientes
                         p1 = partes[0];
                         p1 = p1.substring(2);
                         p2 = partes[1];
@@ -55,20 +60,24 @@ public class Interfaz {
                         p5 = partes[4];
                         p6 = partes[5];
                         p7 = partes[6];
-                        sistema.agregarCliente(p1,p2,p3,p4,p5,p6,Integer.parseInt(p7));
+                        sistema.agregarCliente(p1.toUpperCase(),p2,p3.toUpperCase(),p4.toUpperCase(),p5,p6,Integer.parseInt(p7));
                         break;
                     case 'P':
-                        
+                        //opera sobre los pasajes
                         p1 = partes[0];
                         p1 = p1.substring(2);
                         p2 = partes[1];
                         p3 = partes[2];
                         p4 = partes[3];
-                        p5 = partes[4];
-                        p6 = partes[5];
-                        sistema.agregarPasaje(p1, p2, p3, p4,Integer.parseInt(p5),p6.charAt(0));
+                        sistema.agregarPasaje(p1, p2, p3, p4);
                         break;
-                        
+                    case 'J':
+                        //carga los viajes 
+                        p1 = partes[0];
+                        p1 = p1.substring(2);
+                        p2 = partes[1];
+                        p3 = partes[2];
+                        sistema.agregarViaje(p1,p2,p3);
                     default:
                 }
             } 
@@ -78,17 +87,15 @@ public class Interfaz {
         return sistema;
         
     }
-    public static void main(String args[]){
-        
-        String dir = "C:\\Users\\mano_\\Documents\\cargaDatosTPEDD\\CargaInicio.txt";
-        
+    public static void main(String args[]) {
+
+        String dir = "C:\\Users\\mano_\\Downloads\\TPFINALEDTAMarianoVergara\\CargaInicio.txt";
+
         SistemaViajes edtaViajes = cargarDatos(dir);
-        
-        
-        
-        int op = 1,opc1,opc2, opc3 ,opc4,opc5,opc6,opc7;
-        
-        while (op != 14) {
+
+        int op = 1, opc1, opc2, opc3, opc4, opc5, opc6, opc7, opc8;
+
+        while (op != 15) {
             menu();
             op = TecladoIn.readInt();
 
@@ -130,7 +137,7 @@ public class Interfaz {
                                 System.out.println("Opcion incorrecta");
                         }
                     }
-                break;
+                    break;
                 case 2:
                     opc2 = 1;
                     while (opc2 != 5) {
@@ -138,90 +145,102 @@ public class Interfaz {
                         opc2 = TecladoIn.readLineInt();
                         String codV, aeropuertoO, aeropuertoD, hS, hL;
                         switch (opc2) {
+
                             case 1:
                                 System.out.println("Ingrese el codigo de vuelo");
                                 codV = TecladoIn.readLineWord().toUpperCase();
                                 System.out.println("Ingrese el aeropuerto de origen");
-                                aeropuertoO = TecladoIn.readLineWord().toUpperCase();
-                                System.out.println("Ingrese el aeropuerto de destino");
-                                aeropuertoD = TecladoIn.readLineWord().toUpperCase();
-                                System.out.println("Ingrese la hora de salida HH:HH");
-                                hS = TecladoIn.readLineWord();
-                                System.out.println("Ingrese la hora de llegada");
-                                hL = TecladoIn.readLineWord();
-                                edtaViajes.agregarVuelo(codV, aeropuertoO, aeropuertoD, hS, hL);
+                                aeropuertoO = TecladoIn.readLineWord();
+                                if (edtaViajes.existeAeropuerto(aeropuertoO)) {
+                                    System.out.println("Ingrese el aeropuerto de destino");
+                                    aeropuertoD = TecladoIn.readLineWord();
+                                    if (edtaViajes.existeAeropuerto(aeropuertoD)) {
+                                        System.out.println("Ingrese la hora de salida HH:HH");
+                                        hS = TecladoIn.readLineWord();
+                                        if (edtaViajes.verificarHoraValida(hS)) {
+                                            System.out.println("Ingrese la hora de llegada HH:HH");
+                                            hL = TecladoIn.readLineWord();
+                                            if (edtaViajes.verificarHoraValida(hL)) {
+                                                edtaViajes.agregarVuelo(codV, aeropuertoO, aeropuertoD, hS, hL);
+                                            } else {
+                                                System.out.println("Ingrese una hora valida");
+                                            }
+                                        } else {
+                                            System.out.println("Ingrese una hora valida");
+                                        }
+                                    } else {
+                                        System.out.println("Ingrese un aeropuerto de destino valido");
+                                    }
+                                } else {
+                                    System.out.println("Ingrese un aeropuerto de origen valido");
+                                }
+
                                 break;
                             case 2:
                                 System.out.println("Ingrese el codigo de vuelo");
                                 codV = TecladoIn.readLineWord().toUpperCase();
                                 System.out.println("Ingrese el aeropuerto de origen");
                                 aeropuertoO = TecladoIn.readLineWord();
-                                System.out.println("Ingrese el aeropuerto de destino");
-                                aeropuertoD = TecladoIn.readLineWord();
-                                edtaViajes.eliminarVuelo(codV, aeropuertoO, aeropuertoD);
+                                if (edtaViajes.existeAeropuerto(aeropuertoO)) {
+                                    System.out.println("Ingrese el aeropuerto de destino");
+                                    aeropuertoD = TecladoIn.readLineWord();
+                                    if (edtaViajes.existeAeropuerto(aeropuertoD)) {
+                                        edtaViajes.eliminarVuelo(codV, aeropuertoO, aeropuertoD);
+                                    } else {
+                                        System.out.println("Ingrese un aeropuerto de destino valido");
+                                    }
+                                } else {
+                                    System.out.println("Ingrese un aeropuerto de origen valido");
+                                }
+                             
                                 break;
                             case 3:
-                                System.out.println("Ingrese el codigo de vuelo");
+                                int opcionV = 1;
+                                while (opcionV != 3) {
+                                    System.out.println("Ingrese el codigo de vuelo");
                                 codV = TecladoIn.readLineWord().toUpperCase();
-                                System.out.println("¿Que desea modificar del vuelo");
-                                menuModificacionVuelo();
                                 String ori,
                                  dest,
                                  horaS,
                                  horaL;
-                                int opcionV = 1;
-                                while (opcionV != 6){
-                                opcionV = TecladoIn.readInt();
-                                switch (opcionV) {
-                                    case 1:
-                                        System.out.println("Ingrese el nuevo origen");
-                                        ori = TecladoIn.readLineWord().toUpperCase();
-                                        edtaViajes.modificarVuelo(codV, ori, "", "", "");
-                                        break;
-                                    case 2:
-                                        System.out.println("Ingrese el nuevo destino");
-                                        dest = TecladoIn.readLineWord().toUpperCase();
-                                        edtaViajes.modificarVuelo(codV, "", dest, "", "");
-                                        break;
-                                    case 3:
-                                        System.out.println("Ingrese la hora de salida. HH:HH");
-                                        horaS = TecladoIn.readLineWord();
-                                        edtaViajes.modificarVuelo(codV, "", "", "", horaS);
-                                        break;
-                                    case 4:
-                                        System.out.println("Ingrese la hora de llegada");
-                                        horaL = TecladoIn.readLineWord();
-                                        edtaViajes.modificarVuelo(codV, "", "", horaL, "");
-                                    case 5:
-                                        System.out.println("Ingrese el nuevo origen");
-                                        ori = TecladoIn.readLineWord().toUpperCase();
-                                        System.out.println("Ingrese el nuevo destino");
-                                        dest = TecladoIn.readLineWord().toUpperCase();
-                                        System.out.println("Ingrese la hora de salida");
-                                        horaS = TecladoIn.readLineWord();
-                                        System.out.println("Ingrese la hora de llegada");
-                                        horaL = TecladoIn.readLineWord();
-                                        edtaViajes.modificarVuelo(codV, ori, dest, horaL, horaS);
-                                        break;
-                                    default:
-                                        System.out.println("Opcion incorrecta");
+                                 opcionV = 1;
+                                    System.out.println("¿Que desea modificar del vuelo?");
+                                    menuModificacionVuelo();
+                                    opcionV = TecladoIn.readInt();
+                                    switch (opcionV) {
+                                            
+                                        case 1:
+                                            System.out.println("Ingrese la hora de salida. HH:HH");
+                                            horaS = TecladoIn.readLineWord();
+                                            edtaViajes.modificarVuelo(codV, "", "", "", horaS);
+                                           
+                                            break;
+                                        case 2:
+                                            System.out.println("Ingrese la hora de llegada");
+                                            horaL = TecladoIn.readLineWord();
+                                            edtaViajes.modificarVuelo(codV, "", "", horaL, "");
+                                            
+                                        case 3:
+                                            break;
+                                        default:
+                                            System.out.println("Opcion incorrecta");
+                                    }
                                 }
-                                }
-                        
                             case 4:
                                 System.out.println("Ingrese el codigo del vuelo");
                                 String cod = TecladoIn.readLineWord().toUpperCase();
-                                System.out.println("Ingrese la fecha del vuelo. dd/mm/aaaa");
-                                String fec = TecladoIn.readWord();
-                                edtaViajes.mostrarInformacionVuelo(cod,fec);
+                                System.out.println(edtaViajes.mostrarInformacionVuelo(cod));
+                                break;
+                            case 5:
                                 break;
                             default:
-                                System.out.println("Opcion incorrecta");
+                                System.out.println("Opcion Incorrecta");
+
                         }
                     }
-                break;
+                    break;
                 case 3:
-                
+
                     opc3 = 1;
                     while (opc3 != 5) {
                         ABMCliente();
@@ -234,7 +253,7 @@ public class Interfaz {
                                 tipo = TecladoIn.readLineWord().toUpperCase();
                                 System.out.println("Ingrese el num de la identificacion");
                                 num = TecladoIn.readLineWord().toUpperCase();
-                                if (!edtaViajes.verificarCliente(tipo, num)) {
+                                if (!edtaViajes.verificarCliente(tipo, num)) { //verificar la existencia del cliente antes de pedir todos los datos
                                     System.out.println("Ingrese el nombre");
                                     nom = TecladoIn.readLineWord();
                                     System.out.println("Ingrese el apellido");
@@ -263,7 +282,7 @@ public class Interfaz {
                                 System.out.println("Ingrese el num de la identifacion");
                                 num = TecladoIn.readLineWord().toUpperCase();
                                 System.out.println("Ingrese el nuevo domilicio");
-                                domicilio = TecladoIn.readLineWord();
+                                domicilio = TecladoIn.readLine();
                                 System.out.println("Ingrese el nuevo num de telefono");
                                 numTel = TecladoIn.readLineLong();
                                 edtaViajes.modificarCliente(tipo, num, domicilio, numTel);
@@ -281,13 +300,12 @@ public class Interfaz {
                                 System.out.println("Opcion incorrecta");
                         }
                     }
-                break;
+                    break;
                 case 4:
                     opc4 = 1;
                     while (opc4 != 4) {
                         ABMPasaje();
-                        String vuelo, fecha, tipo, num;
-                        char estado;
+                        String vuelo, fecha, tipo, num, estado;
                         int numAsiento;
                         opc4 = TecladoIn.readLineInt();
                         switch (opc4) {
@@ -296,24 +314,28 @@ public class Interfaz {
                                 tipo = TecladoIn.readLineWord().toUpperCase();
                                 System.out.println("Ingrese el num de la identificacion");
                                 num = TecladoIn.readLineWord().toUpperCase();
-                                if (!edtaViajes.verificarCliente(tipo, num)) {
-                                System.out.println("Ingrese el num de vuelo");
-                                vuelo = TecladoIn.readLineWord().toUpperCase();
-                                System.out.println("Ingrese la fecha. dd/mm/aaaa");
-                                fecha = TecladoIn.readLineWord();
-                                System.out.println("Ingrese el num de asiento");
-                                numAsiento = TecladoIn.readInt();
-                                edtaViajes.agregarPasaje(tipo, num, vuelo, fecha, numAsiento, 'P');
+                                if (edtaViajes.verificarCliente(tipo, num)) { //si existe en cliente
+                                    System.out.println("Ingrese el num de vuelo");
+                                    vuelo = TecladoIn.readLineWord().toUpperCase();
+                                    System.out.println("Ingrese la fecha. dd/mm/aaaa");
+                                    fecha = TecladoIn.readLineWord();
+                                    if (edtaViajes.agregarPasaje(tipo, num, vuelo, fecha)) {
+                                        System.out.println("Se agrego con el exito el pasaje del cliente: " + tipo + " " + num);
+                                    } else {
+                                        System.out.println("No se pudo agregar el pasaje del cliente: " + tipo + " " + num);
+                                    }
                                 } else {
                                     String opcion;
                                     System.out.println("El cliente ingresado no se encuentra en el sistema");
                                     System.out.println("¿Desea agregarlo? Ingrese S para si y N para no");
                                     opcion = TecladoIn.readLineWord().toUpperCase();
-                                    
-                                    
-                                    switch (opcion){
+
+                                    switch (opcion) {
                                         case "S":
-                                            String nom,ape,fech,dom;
+                                            String nom,
+                                             ape,
+                                             fech,
+                                             dom;
                                             long numeroT;
                                             System.out.println("Ingrese el nombre");
                                             nom = TecladoIn.readLineWord();
@@ -329,12 +351,16 @@ public class Interfaz {
                                             vuelo = TecladoIn.readLineWord();
                                             System.out.println("Ingrese la fecha. dd/mm/aaaa");
                                             fecha = TecladoIn.readLineWord();
-                                            System.out.println("Ingrese el num de asiento");
-                                            numAsiento = TecladoIn.readInt();
-                                            edtaViajes.agregarPasaje(tipo, num, vuelo, fecha, numAsiento, 'P');
+                                            if (edtaViajes.agregarPasaje(tipo, num, vuelo, fecha)) {
+                                                System.out.println("Se agrego con el exito el pasaje del cliente: " + tipo + " " + num);
+                                            } else {
+                                                System.out.println("No se pudo agregar el pasaje del cliente: " + tipo + " " + num);
+                                            }
                                             break;
-                                        case "N": break;
-                                        default: System.out.println("Opcion incorrecta");
+                                        case "N":
+                                            break;
+                                        default:
+                                            System.out.println("Opcion incorrecta");
                                     }
                                 }
                                 break;
@@ -348,10 +374,8 @@ public class Interfaz {
                                 System.out.println("Ingrese la fecha del pasaje. dd/mm/aaaa");
                                 fecha = TecladoIn.readLineWord();
                                 System.out.println("Ingrese el num de asiento");
-                                numAsiento = TecladoIn.readInt();
-                                System.out.println("Ingrese el estado");
-                                estado = TecladoIn.readLineNonwhiteChar();
-                                edtaViajes.eliminarPasaje(tipo, num, vuelo, fecha, estado, numAsiento);
+                                numAsiento = TecladoIn.readLineInt();
+                                edtaViajes.eliminarPasaje(tipo, num, vuelo, fecha, numAsiento);
                                 break;
                             case 3:
                                 System.out.println("Ingrese el tipo de identificacion");
@@ -364,26 +388,57 @@ public class Interfaz {
                                 fecha = TecladoIn.readLineWord();
                                 System.out.println("Ingrese el num de asiento");
                                 numAsiento = TecladoIn.readInt();
-                                System.out.println("Ingrese el estado");
-                                estado = TecladoIn.readChar();
-                                edtaViajes.modificarPasaje(tipo, num, vuelo, fecha, estado, numAsiento);
+                                System.out.println("Ingrese el nuevo estado");
+                                estado = TecladoIn.readLineWord();
+                                edtaViajes.modificarPasaje(tipo, num, vuelo, fecha, numAsiento, estado);
                                 break;
                             default:
                                 System.out.println("Opcion incorrecta");
                         }
                     }
-                break;
+                    break;
                 case 5:
-                    //modulo de realizar viaje
-                break;
-                case 6:
-                opc5 = 1;
-                    String tipo,
-                     num;
-                    while (opc5 != 3) {
-                        menuCliente();
+                    opc5 = 1;
+                    String codV,
+                     fech,cantAsientosTotal;
+                    while (opc5 != 4) {
+                        menuViaje();
                         opc5 = TecladoIn.readInt();
                         switch (opc5) {
+                            case 1:
+                                System.out.println("Ingrese el codigo de vuelo");
+                                codV = TecladoIn.readLineWord().toUpperCase();
+                                System.out.println("Ingrese la fecha. dd/m/aaaa ");
+                                fech = TecladoIn.readLineWord();
+                                System.out.println("Ingrese la cantidad de asientos totales");
+                                cantAsientosTotal = TecladoIn.readLineWord();
+                                edtaViajes.agregarViaje(codV,fech,cantAsientosTotal);
+                                break;
+                            case 2:
+                                System.out.println("Ingrese el codigo de vuelo");
+                                codV = TecladoIn.readLineWord().toUpperCase();
+                                System.out.println("Ingrese la fecha del vuelo. dd/m/aaaa");
+                                fech = TecladoIn.readLineWord();
+                                edtaViajes.efectuarViaje(codV, fech);
+                                break;
+                            case 3:
+                                System.out.println("Ingrese el codigo de vuelo");
+                                codV = TecladoIn.readLineWord().toUpperCase();
+                                System.out.println("Ingrese la fecha. dd/m/aaaa ");
+                                fech = TecladoIn.readLineWord();
+                                edtaViajes.cancelarViaje(codV, fech);
+                                break;
+                        }   
+                    }
+                    break;
+                case 6:
+                    opc6 = 1;
+                    String tipo,
+                     num;
+                    while (opc6 != 3) {
+                        menuCliente();
+                        opc6 = TecladoIn.readInt();
+                        switch (opc6) {
                             case 1:
                                 System.out.println("Ingrese el tipo de identificacion");
                                 tipo = TecladoIn.readLineWord().toUpperCase();
@@ -397,7 +452,7 @@ public class Interfaz {
                                 tipo = TecladoIn.readLineWord().toUpperCase();
                                 System.out.println("Ingrese el num de identifacion");
                                 num = TecladoIn.readLineWord().toUpperCase();
-                                c = edtaViajes.obtenerCliente(tipo, num);
+                                c = edtaViajes.obtenerCliente(tipo, num); //no se si conviene hacer esto o directamente mandar tipo y num de dni
                                 edtaViajes.mostrarCiudadesVisitadas(c);
                                 break;
                             case 3:
@@ -405,30 +460,30 @@ public class Interfaz {
                             default:
                                 System.out.println("Opcion incorrecta");
                         }
-                    }   
-                break;
+                    }
+                    break;
                 case 7:
-                    opc6 = 1;
-                    String codVuelo,
-                     fech,
-                     codVuelo2;
-                    while (opc6 != 3) {
+                    opc7 = 1;
+                    String cod,
+                     fecha,
+                     cod2;
+                    while (opc7 != 3) {
                         menuVuelos();
-                        opc6 = TecladoIn.readInt();
-                        switch (opc6) {
+                        opc7 = TecladoIn.readInt();
+                        switch (opc7) {
                             case 1:
                                 System.out.println("Ingrese el codigo de vuelo");
-                                codVuelo = TecladoIn.readLineWord().toUpperCase();
+                                cod = TecladoIn.readLineWord().toUpperCase();
                                 System.out.println("Ingrese la fecha del vuelo. dd/mm/aaaa");
-                                fech = TecladoIn.readLineWord();
-                                edtaViajes.mostrarInformacionVuelo(codVuelo, fech);
+                                fecha = TecladoIn.readLineWord();
+                                edtaViajes.mostrarInformacionVuelo(cod);
                                 break;
                             case 2:
                                 System.out.println("Ingrese el codigo de vuelo");
-                                codVuelo = TecladoIn.readLineWord().toUpperCase();
+                                cod = TecladoIn.readLineWord().toUpperCase();
                                 System.out.println("Ingrese el codigo de vuelo");
-                                codVuelo2 = TecladoIn.readLineWord().toUpperCase();
-                                edtaViajes.mostrarCodigos(codVuelo, codVuelo2);
+                                cod2 = TecladoIn.readLineWord().toUpperCase();
+                                edtaViajes.mostrarCodigos(cod, cod2);
                                 break;
                             case 3:
                                 break;
@@ -437,17 +492,16 @@ public class Interfaz {
 
                         }
                     }
-                   
-                break;
+
+                    break;
                 case 8:
-                    opc7 = 1;
-                    String aerA,
-                     aerB;
+                    opc8 = 1;
+                    String aerA,aerB,aerC;
                     int cantV;
-                    while (opc7 != 3) {
-                        menuViajes();
-                        opc7 = TecladoIn.readLineInt();
-                        switch (opc7) {
+                    while (opc8 != 3) {
+                        menuFunciones();
+                        opc8 = TecladoIn.readLineInt();
+                        switch (opc8) {
                             case 1:
                                 System.out.println("Ingrese el codigo del aeropuerto");
                                 aerA = TecladoIn.readLineWord().toUpperCase();
@@ -469,37 +523,54 @@ public class Interfaz {
                                 aerA = TecladoIn.readLineWord().toUpperCase();
                                 System.out.println("Ingrese el codigo del aeropuerto");
                                 aerB = TecladoIn.readLineWord().toUpperCase();
-                                System.out.println(edtaViajes.caminoMasCortoAeropuertos(aerA, aerB).toString());
+                                System.out.println(edtaViajes.caminoMasCortoPorAeropuertos(aerA, aerB));
+                                break;
                             case 4:
+                                System.out.println("Ingrese el codigo del aeropuerto A");
+                                aerA = TecladoIn.readLineWord().toUpperCase();
+                                System.out.println("Ingrese el codigo del aeropuerto B");
+                                aerB = TecladoIn.readLineWord().toUpperCase();
+                                System.out.println("Ingrese el codigo del aeropuerto C");
+                                aerC = TecladoIn.readLineWord().toUpperCase();
+                                System.out.println(edtaViajes.caminoMasCortodeAaByPasaPorC(aerA,aerB,aerC));
+                                break;
+                            case 5:
                                 break;
                             default:
                                 System.out.println("Opcion incorrecta");
                         }
-                    }                   
+                    }
                     break;
                 case 9:
                     //mostrar clientes aptos promocion
                     System.out.println("Los clientes aptos para la promocion son");
                     System.out.println(edtaViajes.clientesAptosPromocion().toString());
-                    
+
                     break;
                 case 10:
                     //mostrar grafo aeropuertos
-                    System.out.println(edtaViajes.mostrarClientes());
-                    break;              
+                    System.out.println(edtaViajes.mostrarGrafoAeropuertos());
+                    break;
                 case 11:
                     //mostrar clientes almacenados
                     System.out.println(edtaViajes.mostrarClientes());
-                break;
+                    break;
                 case 12:
+                    //mostrar vuelos 
                     System.out.println(edtaViajes.mostrarVuelos());
-                    
+
                     break;
                 case 13:
                     //mostrar mapeo de pasajes
+                    System.out.println(edtaViajes.mostrarMapeoPasajes());
                 case 14:
+                    //mostrar estado del sistema
+                    System.out.println(edtaViajes.mostrarEstadoSistema());
                     break;
-                default: System.out.println("Opcion Incorrecta");
+                case 15:
+                    break;
+                default:
+                    System.out.println("Opcion Incorrecta");
             }
         }
     }
@@ -519,14 +590,15 @@ public class Interfaz {
         System.out.println("11. Mostrar clientes almacenados");
         System.out.println("12. Mostrar vuelos almacenados");
         System.out.println("13. Mostrar mapeo de pasajes");
-        System.out.println("14. Salir");
+        System.out.println("14. Mostrar estado del sistema");
+        System.out.println("15. Salir");
 
     }
     public static void menuViaje(){
         System.out.println("1. Generar Viaje");
         System.out.println("2. Efectuar Viaje");
         System.out.println("3. Cancelar Viaje");
-        System.out.println("4. Salir");
+        System.out.println("4. Atras");
     }
     
     public static void ABMAeropuerto(){
@@ -534,57 +606,55 @@ public class Interfaz {
         System.out.println("2. Eliminar aeropuerto");
         System.out.println("3. Modificar aeropuerto");
         System.out.println("4. Mostrar aeropuerto");
-        System.out.println("5. Salir");
+        System.out.println("5. Atras");
     }
     public static void ABMCliente(){
         System.out.println("1. Añadir cliente");
         System.out.println("2. Eliminar cliente ");
         System.out.println("3. Modificar cliente");
         System.out.println("4. Mostrar cliente");
-        System.out.println("5. Salir");
+        System.out.println("5. Atras");
     }
     
     public static void ABMVuelo(){
         System.out.println("1. Añadir vuelo");
-        System.out.println("2. Eliminar vuelo ");
+        System.out.println("2. Eliminar vuelo ");//al eliminar el vuelo tengo que eliminar la ruta entre aeropuertos
+        //eliminar los viajes cancelar las compras de los clientes
         System.out.println("3. Modificar vuelo");
         System.out.println("4. Mostrar vuelo");
-      
-        System.out.println("7. Salir");
+        System.out.println("5. Atras");
     }
     public static void ABMPasaje(){
         System.out.println("1. Añadir pasaje");
-        System.out.println("2. Eliminar pasaje ");
+        System.out.println("2. Eliminar pasaje  ");
         System.out.println("3. Modificar pasaje");
-        System.out.println("4. Salir");
+        System.out.println("4. Atras");
     }
    
     public static void menuCliente(){
         System.out.println("1.Mostrar Informacion de vuelo y pasajes comprados");
-        System.out.println("2.Mostrar las ciudades que ha visitado cliente");
-        System.out.println("3.Salir");
+        System.out.println("2.Mostrar las ciudades que ha visitado el cliente");
+        System.out.println("3.Atras");
     }
     public static void menuVuelos(){
         System.out.println("1.Obtener informacion de vuelo. Ingrese el codigo de vuelo y la fecha");
         System.out.println("2.Obtener los codigos existentes entre dos codigos de vuelo");
-        System.out.println("3.Salir");
+        System.out.println("3.Atras");
     }
-    public static void menuViajes(){
+    public static void menuFunciones(){
         System.out.println("1.Verificar si el cliente que parte del aeropuerto a llegue al aeropuerto"
                 + "b en como maximo x vuelos");
         System.out.println("2.Obtener el camino con menor tiempo de vuelo");
         System.out.println("3.Obtener el camino de A a B pasando por la minima cantidad"
                 + "de aeropuertos");
-        System.out.println("4.Salir");
+        System.out.println("4.Obtener el camino mas rapido de A a B pasando por C");
+        System.out.println("5.Atras");
     }
     public static void menuModificacionVuelo(){
-        System.out.println("---------------------");
-        System.out.println("1. Origen");
-        System.out.println("2. Destino");
-        System.out.println("3. Hora salida");
-        System.out.println("4. Hora llegada");
-        System.out.println("5. Todo");
-        System.out.println("6. Salir");
+        System.out.println("-------------------");
+        System.out.println("1. Hora salida");
+        System.out.println("2. Hora llegada");
+        System.out.println("3. Atras");
     }
     
     public static void menuModificacionCliente(){
@@ -592,7 +662,7 @@ public class Interfaz {
         System.out.println("1. Domilicio");
         System.out.println("2. Numero de telefono");
         System.out.println("3. Ambos");
-        System.out.println("4. Salir");
+        System.out.println("4. Atras");
     }
             
     
