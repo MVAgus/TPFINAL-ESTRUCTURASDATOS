@@ -76,6 +76,12 @@ public class Pasaje {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return "{" + "codVuelo=" + codVuelo + ", estado=" + estado + ", fecha=" + fecha + ", numAsiento=" + numAsiento + '}';
+    }
+    
+
     
     
 

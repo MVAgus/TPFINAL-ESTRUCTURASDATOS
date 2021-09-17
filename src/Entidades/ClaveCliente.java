@@ -19,10 +19,19 @@ public class ClaveCliente implements Comparable {
     public ClaveCliente(String t, String n) {
         
         //TODO: escribir metodo para validar datos
-        this.tipo = t;
+        this.tipo = t.toUpperCase();
         this.num = n;
         
     }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public String getNum() {
+        return num;
+    }
+    
       
 
     @Override

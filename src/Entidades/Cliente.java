@@ -5,6 +5,7 @@
  */
 package Entidades;
 
+import Funcionalidad.Lista;
 import java.util.Objects;
 
 /**
@@ -18,6 +19,8 @@ public class Cliente {
     private String fechaNacimiento;
     private String domicilio;
     private long numTelefono;
+    private int cantPasajesComprados = 0; //este atributo lo utilizo para llevar un control de las personas que mas compraron pasaje
+  
     
     public Cliente(String tipo, String num){
         this.clave = new ClaveCliente(tipo,num);
@@ -25,23 +28,20 @@ public class Cliente {
 
     public Cliente(String tipo, String num, String nom,String ape,String fechaNac,String dom, long numTel){
         this.clave = new ClaveCliente(tipo,num);
-        this.nombre = nombre;
-        this.apellido = apellido;
+        this.nombre = nom;
+        this.apellido = ape;
         this.fechaNacimiento = fechaNac;
         this.domicilio = dom;
         this.numTelefono = numTel;
     }
 
-    public ClaveCliente getClave() {
-        return clave;
+    public Comparable getClave() {
+        return (this.clave.getTipo()+" "+this.clave.getNum());
     }
 
-    public void setClave(ClaveCliente clave) {
-        this.clave = clave;
-    }
-
+    
     public String getNombre() {
-        return nombre;
+        return this.nombre;
     }
 
     public void setNombre(String nombre) {
@@ -79,10 +79,17 @@ public class Cliente {
     public void setNumTelefono(long numTelefono) {
         this.numTelefono = numTelefono;
     }
+    
+    public void añadirPasaje(){
+        this.cantPasajesComprados+=1;
+    }
+    public int getPasajesComprados(){
+        return this.cantPasajesComprados;
+    }
 
     @Override
     public String toString() {
-        return "Cliente{" + "clave=" + clave + ", nombre=" + nombre + ", apellido=" + apellido + ", fechaNacimiento=" + fechaNacimiento + ", domicilio=" + domicilio + ", numTelefono=" + numTelefono + '}';
+        return "Cliente{" + "clave=" + clave.getTipo()+","+clave.getNum()+ ", nombre=" + nombre + ", apellido=" + apellido + ", fechaNacimiento=" + fechaNacimiento + ", domicilio=" + domicilio + ", numTelefono=" + numTelefono + '}';
     }
     
    

@@ -10,21 +10,18 @@ package Entidades;
  * @author mano_
  */
 public class Viaje {
-    private String idVuelo;
+    
     private String fecha;
     private int asientosTotales;
-    private int asientosVendidos;
+    private int asientosVendidos = 0;
+    private char estado = 'P';
     
-    public Viaje(String cod, String fecha, int asientosT,int asientosV){
-        this.idVuelo = cod;
+    public Viaje(String fecha, int asientosT){
+        
         this.fecha = fecha;
         this.asientosTotales = asientosT;
-        this.asientosVendidos = asientosV;
     }
-    public String getIdVuelo(){
-        return this.idVuelo;
-    }
-
+    
     public String getFecha() {
         return fecha;
     }
@@ -40,6 +37,14 @@ public class Viaje {
     public void setAsientosTotales(int asientosTotales) {
         this.asientosTotales = asientosTotales;
     }
+    
+    public char getEstado(){
+        return this.estado;
+    }
+    
+    public void setEstado(){
+        this.estado = 'V';
+    }
 
     public int getAsientosVendidos() {
         return asientosVendidos;
@@ -48,11 +53,19 @@ public class Viaje {
     public void setAsientosVendidos(int asientosVendidos) {
         this.asientosVendidos = asientosVendidos;
     }
-
+    
+    public boolean añadirPasajero(){
+        boolean resultado = false;
+        if (this.asientosVendidos != this.asientosTotales){
+            this.asientosVendidos++;
+            resultado = true;
+        }
+    return resultado;
+    }
+  
     @Override
     public String toString() {
-        return "Viaje{" + "idVuelo=" + idVuelo + ", fecha=" + fecha + ", asientosTotales=" + asientosTotales + ", asientosVendidos=" + asientosVendidos + '}';
+        return "Viaje-> {fecha=" + fecha + ", asientosTotales=" + asientosTotales + ", asientosVendidos=" + asientosVendidos + '}';
     }
-    
-    
+   
 }
