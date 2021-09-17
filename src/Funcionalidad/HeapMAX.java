@@ -35,19 +35,19 @@ public class HeapMAX {
 
     public boolean insertar(Comparable elem, Object objeto) {
         boolean exito = true;
-        Object[] obj = new Object[2];
-        obj[0] = elem;
-        obj[1] = objeto;
+        Object[] objNuevo = new Object[2];
+        objNuevo[0] = elem;
+        objNuevo[1] = objeto;
         if (this.esVacio()) {
             //Si el heap esta vacio, inserta el arbol en la raiz
        
-            this.heap[ultimo + 1] = obj;
+            this.heap[ultimo + 1] = objNuevo;
             ultimo++;
         } else {
             //Si el arbol tiene al menos un elemento , verifica que haya espacio
             //suficiente en el heap para insertar el elemento
             if (ultimo < TAMANIO) {
-                this.heap[ultimo + 1] = obj;
+                this.heap[ultimo + 1] = objNuevo;
                 ultimo++;
                 int padre = ultimo / 2;
                 //Ubica al elemento en la posicion correcta
@@ -63,17 +63,16 @@ public class HeapMAX {
         //es decir this.heap[] es un arreglo que en cada una de las posiciones tiene un mini arreglo
         //de 2 elementos.El mini arreglo en la pos 0 tiene la clave que es de tipo comparable y en la pos1 tiene el objeto
         
-    
         int posH = this.ultimo;
         
-        Object[]objetoPadre = (Object[])this.heap[posPadre];
-        Comparable clavePadre = (Comparable)objetoPadre[0];
+        Object[]objetoPadre = (Object[])this.heap[posPadre]; //objeto que esta en la posicion padre
+        Comparable clavePadre = (Comparable)objetoPadre[0];  //clave del objeto que esta en la posicion padre
      
-        Object[]objetoNuevo = (Object[])this.heap[posH];
-        Comparable claveElemNuevo = (Comparable)objetoNuevo[0];
+        Object[]objetoNuevo = (Object[])this.heap[posH];   //objeto nuevo 
+        Comparable claveElemNuevo = (Comparable)objetoNuevo[0];  //clave del objeto nuevo
     
         
-        Object[] temp = (Object[])this.heap[posPadre];
+        Object[] temp = (Object[])this.heap[posPadre]; 
         Comparable claveTemp = (Comparable)temp[0];
     
         
@@ -82,15 +81,23 @@ public class HeapMAX {
             //Este bucle se repite hasta que el hijo llegue a la raiz
             // o hasta que llegue a una posicion en la cual sea mayor que su padre
             if (posPadre >= 1 && claveElemNuevo.compareTo(clavePadre) > 0) {
+                System.out.println("intercambia -->"+claveElemNuevo+" con clave padre "+clavePadre);
+                System.out.println("pos padre-> "+posPadre+" y pos hijo--> "+posH);
                 //Si el nuevo elemento tiene mayor valor que su padre lo hacemos subir
                 this.heap[posPadre] = objetoNuevo;
+                System.out.println("padre -> "+clavePadre);
                 this.heap[posH] = temp;
+                
                 posH = posPadre;
                 posPadre = posPadre / 2;
                 Object[] nuevo = (Object[])this.heap[posPadre];
                 temp = nuevo;
             } else {
                 salir = true;
+            }
+            if (posPadre != 0){
+                objetoPadre = (Object[])this.heap[posPadre];
+                clavePadre = (Comparable)objetoPadre[0];
             }
 
         }

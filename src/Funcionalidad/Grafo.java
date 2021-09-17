@@ -17,13 +17,55 @@ public class Grafo {
      this.inicio = null;
     }
     
-    public Object obtenerAeropuerto(Object a){
+    public Object obtenerElementoVertice(Object a){
         Object elem = null;
         NodoVert buscado = ubicarVertice(a);
         if (buscado != null){
         elem = buscado.getElem();
         }
         return elem;
+    }
+    
+  
+    public boolean modificarEtiquetaArco(Object origen, Object destino, int etiquetaAc, int nuevaEtq) {
+        boolean exito = false;
+
+        NodoVert org = this.ubicarVertice(origen);
+        if (org != null) {
+            NodoVert dest = this.ubicarVertice(destino);
+            if (dest != null) {
+                //si existe origen y destino
+                exito = this.modificarEtiquetaArcoAux(org, destino, etiquetaAc, nuevaEtq); //modifica la etiqueta que va de A--> B
+                exito = this.modificarEtiquetaArcoAux(dest, origen, etiquetaAc, nuevaEtq); //modifica la etiqueta que va de B--> A
+            }
+        }
+        return exito;
+    }
+    
+    private boolean modificarEtiquetaArcoAux(NodoVert org, Object destino, int etiquetaAc, int nuevaEtq) {
+        boolean exito = false;
+        NodoAdy aux = org.getPrimerAdy();
+        //caso especial, el primer adyacente es el destino
+        if (aux.getVertice().getElem().equals(destino) && aux.getEtiqueta() == etiquetaAc) {
+            org.getPrimerAdy().setEtiqueta(nuevaEtq);
+            exito = true;
+        } else {
+        //caso general, tiene que buscar en la lista de adyacentes
+            boolean modificado = false;
+            NodoAdy aux2 = org.getPrimerAdy();
+
+            while (aux2 != null && !modificado) {
+                if (aux2.getVertice().getElem().equals(destino) && aux2.getEtiqueta() == etiquetaAc) {
+                    aux2.setEtiqueta(nuevaEtq);
+                    modificado = true;
+                    exito = true;
+                }
+                aux2 = aux2.getSigAdyacente();
+            }
+
+        }
+        return exito;
+
     }
    
     public boolean insertarVertice(Object elem) {
@@ -70,170 +112,254 @@ public class Grafo {
         //si no existe el origen y tampoco existe el destino retorna falso
         NodoVert origen = ubicarVertice(ori);
         if (origen != null) {
+            
             NodoVert destino = ubicarVertice(des);
             if (destino != null) {
-                //existe origen y destino
-                insertarArcoAux(origen, destino, etiqueta);
-                exito = true;
+//                insertarArcoAux(origen, destino, etiqueta);
+                exito = insertarArcoAux(origen,destino,etiqueta);
             }
-        }
+        } 
+        
         return exito;
     }
-     
-    private void insertarArcoAux(NodoVert origen, NodoVert destino, int etiqueta) {
 
-        if (origen.getPrimerAdy() == null) {
-            //No tiene arcos el vertice, se crea el primer arco
-            origen.setPrimerAdy(new NodoAdy(destino, etiqueta));
-        } else {
-            NodoAdy aux = origen.getPrimerAdy();
-            //se busca al ultimo nodo adyacente y se le conecta el nuevo nodo
-            while (aux.getSigAdyacente() != null) {
-                aux = aux.getSigAdyacente();
+    
+    private boolean insertarArcoAux(NodoVert origen, NodoVert destino, int etiqueta) {
+        boolean repetido = false; //se utiliza para verificar si se trata de un arco repetido
+        boolean respuesta = true;
+        if (origen.getPrimerAdy() != null) { //si el origen tiene adyacentes recorro la lista de adyacentes y me fijo si no esta repetido el arco
+            NodoAdy auxOr = origen.getPrimerAdy();
+            while (auxOr.getSigAdyacente() != null && !repetido) {
+                auxOr = auxOr.getSigAdyacente();
+                if (auxOr.getVertice().getElem().equals(destino.getElem()) && auxOr.getEtiqueta() == etiqueta) {
+                    //si el elemento del vertice es igual y la etiqueta tambien, indica que ese arco ya esta cargado en el grafo
+                    repetido = true;
+                }
             }
-            aux.setSigAdyacente((new NodoAdy(destino, etiqueta)));
+            if (!repetido) {
+                auxOr.setSigAdyacente((new NodoAdy(destino, etiqueta)));
+            }
+        } else { //si el origen no tiene adyacentes, seteo el arco como primer adyacente
+            origen.setPrimerAdy(new NodoAdy(destino, etiqueta));
         }
-
+        if (destino.getPrimerAdy() != null) { //la misma consideracion que tuve en cuenta para el origen
+            NodoAdy aux = destino.getPrimerAdy();
+            while (aux.getSigAdyacente() != null & !repetido) { //este repetido sirve cortar el while en el caso de que al tratar de insertar desde origen hacia destino este repetido el arco
+                aux = aux.getSigAdyacente();
+                if (aux.getVertice().getElem().equals(origen.getElem()) && aux.getEtiqueta() == etiqueta) {
+                    repetido = true;
+                }
+            }
+            if (!repetido) {
+                aux.setSigAdyacente(new NodoAdy(origen, etiqueta));
+            }
+        } else {
+            destino.setPrimerAdy(new NodoAdy(origen, etiqueta));
+        }
+        if (repetido) {
+            respuesta = false;
+        }
+        return respuesta;
     }
-    public boolean eliminarArco(Object ori, Object des,int etiqueta) {
+
+    
+    public boolean eliminarArco(Object ori, Object dest, int etiqueta) {
         boolean exito = false;
         //si no existe el origen y tampoco existe el destino retorna falso
         NodoVert origen = ubicarVertice(ori);
         if (origen != null) {
-            NodoVert destino = ubicarVertice(des);
-            if (destino != null) {
-                if (etiqueta != -1){
-                eliminarArcoAuxConEtq(origen,destino,etiqueta);
-                } else {
-                    eliminarArcoAux(origen,destino);
-                }
-                exito = true;
-            }
+            exito = eliminarArcoAux(origen, dest, etiqueta);
+         
         }
         return exito;
     }
-    private void eliminarArcoAuxConEtq(NodoVert origen, NodoVert destino,int etq) {
-        //modulo privado para eliminar arco
-        //concidero que puede haber mas de dos arcos 
-        //puede que el origen y el destino no esten conectados mediante un arco, en ese caso no pasa nada
-        NodoAdy aux = origen.getPrimerAdy();
+    
+    public boolean eliminarArcos(Object ori, Object dest) {
+        boolean exito = false;
+        NodoVert origen = ubicarVertice(ori);
+        if (origen != null) {
+            exito = eliminarArcosAux(origen, dest);
+        }
+        return exito;
+    }
 
-        while (aux != null) {
-            if (aux.getVertice().equals(destino) && aux.getEtiqueta() == etq) {
-                //quiere decir que el primer adyacente es el nodo a eliminar
-                if (aux.getSigAdyacente() != null) {
-                    origen.setPrimerAdy(aux.getSigAdyacente());
-                    aux = origen.getPrimerAdy();
-                } else {
-                    // en el caso de que sea el unico nodo en la lista, el primer adyacente del vertice queda nulo
-                    origen.setPrimerAdy(null);
-                    aux = null;
-                }
+    private boolean eliminarArcoAux(NodoVert origen, Object destino, int etq) {
+        boolean eliminado = false;
+        NodoAdy auxAdyOrigen = origen.getPrimerAdy(); //a partir del origen busco en la lista de adyacentes el nodo destino
+        NodoVert verticeDestino;
+        NodoAdy adyDest;
+        if (auxAdyOrigen.getVertice().getElem().equals(destino) && auxAdyOrigen.getEtiqueta() == etq) {//si el primer adyacente es el nodo a eliminar
+            verticeDestino = auxAdyOrigen.getVertice();
+            adyDest = verticeDestino.getPrimerAdy();
+            eliminarInverso(verticeDestino, adyDest,origen, etq); //antes de eliminar el nodo lo que hago es eliminar su inverso dado que es un grafo bidireccional
+
+            if (auxAdyOrigen.getSigAdyacente() != null) { //si hay mas adyacentes en la lista, se setea como primer adyacente el que le sigue al primero de la lista
+                origen.setPrimerAdy(auxAdyOrigen.getSigAdyacente());
             } else {
+                origen.setPrimerAdy(null);
+            }
+            eliminado = true;
+        } else {
+            while (auxAdyOrigen.getSigAdyacente() != null && !eliminado) {
+                if (auxAdyOrigen.getSigAdyacente().getVertice().getElem().equals(destino) && auxAdyOrigen.getSigAdyacente().getEtiqueta() == etq) {
 
-                if (aux.getSigAdyacente() != null && aux.getSigAdyacente().getVertice().equals(destino)
-                        && aux.getSigAdyacente().getEtiqueta() == etq) {
-                    //si el siguiente al adyacente es el elemento a eliminar
-                    if (aux.getSigAdyacente().getSigAdyacente() != null) {
-                        //si existe nodo para enlazar se conectara a ese
-                        aux.setSigAdyacente(aux.getSigAdyacente().getSigAdyacente());
+                    verticeDestino = auxAdyOrigen.getSigAdyacente().getVertice();
+                    adyDest = verticeDestino.getPrimerAdy();
+                    eliminarInverso(verticeDestino, adyDest,origen, etq);
+                    if (auxAdyOrigen.getSigAdyacente().getSigAdyacente() != null) {//verifico si existe un nodoAdy siguiente para enlazar
+                        auxAdyOrigen.setSigAdyacente(auxAdyOrigen.getSigAdyacente().getSigAdyacente());
                     } else {
                         //si no existe entonces el enlace al siguiente sera nulo
-                        aux.setSigAdyacente(null);
+                        auxAdyOrigen.setSigAdyacente(null);
                     }
+                    eliminado = true;
                 } else {
-                    aux = aux.getSigAdyacente();
+                    auxAdyOrigen = auxAdyOrigen.getSigAdyacente();
                 }
-
             }
         }
+        return eliminado;
     }
-    private void eliminarArcoAux(NodoVert origen, NodoVert destino){
-        NodoAdy aux = origen.getPrimerAdy();
+    private boolean eliminarArcosAux(NodoVert origen, Object destino) {
+        boolean eliminado = false;
+        NodoAdy auxAdyOrigen = origen.getPrimerAdy(); //a partir del origen busco en la lista de adyacentes el nodo destino
+        NodoVert verticeDestino;
+        NodoAdy adyDest;
+        if (auxAdyOrigen.getVertice().getElem().equals(destino)) {//si el primer adyacente es el nodo a eliminar
+            verticeDestino = auxAdyOrigen.getVertice();
+            adyDest = verticeDestino.getPrimerAdy();
+            eliminarInversos(verticeDestino, adyDest,origen); //antes de eliminar el nodo lo que hago es eliminar su inverso dado que es un grafo bidireccional
 
-        while (aux != null) {
-            if (aux.getVertice().equals(destino)) {
-                //quiere decir que el primer adyacente es el nodo a eliminar
-                if (aux.getSigAdyacente() != null) {
-                    origen.setPrimerAdy(aux.getSigAdyacente());
-                    aux = origen.getPrimerAdy();
-                } else {
-                    // en el caso de que sea el unico nodo en la lista, el primer adyacente del vertice queda nulo
-                    origen.setPrimerAdy(null);
-                    aux = null;
-                }
+            if (auxAdyOrigen.getSigAdyacente() != null) { //si hay mas adyacentes en la lista, se setea como primer adyacente el que le sigue al primero de la lista
+                origen.setPrimerAdy(auxAdyOrigen.getSigAdyacente());
             } else {
+                origen.setPrimerAdy(null);
+            }
+            eliminado = true;
+        } else {
+            while (auxAdyOrigen.getSigAdyacente() != null && !eliminado) {
+                if (auxAdyOrigen.getSigAdyacente().getVertice().getElem().equals(destino)) {
 
-                if (aux.getSigAdyacente() != null && aux.getSigAdyacente().getVertice().equals(destino)) {
-                    //si el siguiente al adyacente es el elemento a eliminar
-                    if (aux.getSigAdyacente().getSigAdyacente() != null) {
-                        //si existe nodo para enlazar se conectara a ese
-                        aux.setSigAdyacente(aux.getSigAdyacente().getSigAdyacente());
+                    verticeDestino = auxAdyOrigen.getSigAdyacente().getVertice();
+                    adyDest = verticeDestino.getPrimerAdy();
+                    eliminarInversos(verticeDestino, adyDest,origen);
+                    if (auxAdyOrigen.getSigAdyacente().getSigAdyacente() != null) {//verifico si existe un nodoAdy siguiente para enlazar
+                        auxAdyOrigen.setSigAdyacente(auxAdyOrigen.getSigAdyacente().getSigAdyacente());
                     } else {
                         //si no existe entonces el enlace al siguiente sera nulo
-                        aux.setSigAdyacente(null);
+                        auxAdyOrigen.setSigAdyacente(null);
                     }
+                    eliminado = true;
                 } else {
-                    aux = aux.getSigAdyacente();
+                    auxAdyOrigen = auxAdyOrigen.getSigAdyacente();
                 }
-
             }
         }
+        return eliminado;
     }
-      
+    private void eliminarInverso(NodoVert vertD, NodoAdy adyDest,NodoVert origen, int etq) {
+        //lo que hace este metodo es eliminar el arco inverso al origen
+        //se utiliza en el metodo eliminar arco
+        boolean eliminado = false;
+
+        if (adyDest.getVertice().equals(origen) && adyDest.getEtiqueta() == etq) { //si es el primero,lo enlazo con el siguiente
+            if (adyDest.getSigAdyacente() != null) {
+                vertD.setPrimerAdy(adyDest.getSigAdyacente());
+            } else {
+                vertD.setPrimerAdy(null);
+            }
+        } else {
+            while (adyDest.getSigAdyacente() != null && !eliminado) {
+                if (adyDest.getSigAdyacente().getVertice().equals(origen)) {
+                    if (adyDest.getSigAdyacente().getSigAdyacente() != null) {
+                        adyDest.setSigAdyacente(adyDest.getSigAdyacente().getSigAdyacente());
+                    } else {
+                        adyDest.setSigAdyacente(null);
+                    }
+                    eliminado = true;
+                } else {
+                    adyDest = adyDest.getSigAdyacente();
+                }
+            }
+        }
+
+    }
+    
+    private void eliminarInversos(NodoVert vertD, NodoAdy adyDest, NodoVert or) {
+        //lo que hace este metodo es eliminar el arco inverso al origen
+        //se utiliza en el metodo eliminar arco
+        boolean eliminado = false;
+
+        if (adyDest.getVertice().equals(or)) { //si es el primero,lo enlazo con el siguiente
+            if (adyDest.getSigAdyacente() != null) {
+                vertD.setPrimerAdy(adyDest.getSigAdyacente());
+            } else {
+                vertD.setPrimerAdy(null);
+            }
+        } else {
+            while (adyDest.getSigAdyacente() != null && !eliminado) {
+                if (adyDest.getSigAdyacente().getVertice().equals(or)) {
+                    if (adyDest.getSigAdyacente().getSigAdyacente() != null) {
+                        adyDest.setSigAdyacente(adyDest.getSigAdyacente().getSigAdyacente());
+                    } else {
+                        adyDest.setSigAdyacente(null);
+                    }
+                    eliminado = true;
+                } else {
+                    adyDest = adyDest.getSigAdyacente();
+                }
+            }
+        }
+
+    }
+
     public boolean eliminarVertice(Object buscado) {
         boolean exito = false;
         //se verifica si existe el nodo a borrar
         NodoVert borrado = ubicarVertice(buscado);
         if (borrado != null) {
-            eliminarVerticeAux(borrado);
-            exito = true;
+            exito = eliminarVerticeAux(borrado);
         }
         return exito;
     }
-
-    private void eliminarVerticeAux(NodoVert buscado) {
-        NodoVert aux;
-        //si el vertice buscado esta como inicio
-        if (this.inicio.equals(buscado)) {
-            if (this.inicio.getSigVertice() != null) {
-                //se asigna el siguiente del inicio como el nuevo inicio
-                this.inicio = this.inicio.getSigVertice();
-                //luego se elimina los arcos que unen al vertice eliminado
-                aux = this.inicio;
-                while (aux != null) {
-                    eliminarArcoAux(aux, buscado);
-                    aux = aux.getSigVertice();
-                }
-            } else {
-                //si el grafo tiene un solo vertice el inicio sera nulo
-                this.inicio = null;
-            }
+    
+    private boolean eliminarVerticeAux(NodoVert buscado) {
+        boolean eliminado = false;
+        NodoVert verticeaBorrar = null;
+        if (this.inicio.equals(buscado)) {//el inicio es el nodo a borrar
+            verticeaBorrar = this.inicio;
+            this.inicio = this.inicio.getSigVertice();
+            eliminado = true;
         } else {
-            aux = this.inicio;
-            /*se busca el vertice hasta encontrarlo y luego eliminarlo,
-            sino retorna falso*/
-            while (aux.getSigVertice() != null) {
+            NodoVert aux = this.inicio;
+            while (aux.getSigVertice() != null && !eliminado) {
+                //recorro la lista de vertices para buscarlo
                 if (aux.getSigVertice().equals(buscado)) {
-                    //si el elemento a eliminar tiene un vertice conectado, el vertice anterior se conectara a este
+                    verticeaBorrar = aux.getSigVertice(); //vertice a borrar
                     if (aux.getSigVertice().getSigVertice() != null) {
                         aux.setSigVertice(aux.getSigVertice().getSigVertice());
                     } else {
-                        //sino la conexion al proximo vertice es nula
                         aux.setSigVertice(null);
-                        //se elimina los arcos con direccion al vertice a borrar
-                        eliminarArcoAux(aux, buscado);
-                        //se corta la repeticion porque ya no quedan datos por iterar
-                        break;
                     }
+                    eliminado = true;
+                } else {
+                    aux = aux.getSigVertice();
                 }
-                //se elimina los arcos a el nodo borrado
-                eliminarArcoAux(aux, buscado);
-                aux = aux.getSigVertice();
             }
         }
+        if (eliminado) { //una vez que encontre el vertice y lo desanganche lo que hago es borar sus arcos
+            NodoAdy adyacentesABorrar = verticeaBorrar.getPrimerAdy();
+            while (adyacentesABorrar != null) {
+                Object dest = adyacentesABorrar.getVertice().getElem();
+                eliminarArcosAux(verticeaBorrar, dest);
+                adyacentesABorrar = adyacentesABorrar.getSigAdyacente();
+            }
+
+        }
+        return eliminado;
     }
- 
+
+    
  @Override
     public String toString(){
         return toStringAux();
@@ -251,7 +377,7 @@ public class Grafo {
                 s += aux.getElem() + "-->";
                 aux2 = aux.getPrimerAdy();
                 while (aux2 != null) {
-                    s += " " + aux2.getVertice().getElem();
+                    s += " " + aux2.getVertice().getElem()+ " ("+aux2.getEtiqueta()+")";
                     aux2 = aux2.getSigAdyacente();
                 }
                 s += "\n";
@@ -311,45 +437,6 @@ public class Grafo {
         return exito;
     }
    
-    private Lista caminoMasLargoAux(NodoVert n, Object dest, Lista fin, Lista l, int cantVertices) {
-        if (n != null) {
-            //si vertice n es igual al destino, hay camino
-            if (n.getElem().equals(dest)) {
-                if (fin.esVacia() || fin.longitud() < cantVertices) {
-                    fin = l.clone();
-                    fin.insertar(dest, l.longitud() + 1);
-                }
-
-            } else {
-
-                l.insertar(n.getElem(), l.longitud() + 1);
-
-                NodoAdy ady = n.getPrimerAdy();
-                while (ady != null) {
-                    if (l.localizar(ady.getVertice().getElem()) < 0) {
-                        fin = caminoMasLargoAux(ady.getVertice(), dest, fin, l, cantVertices + 1);
-                    }
-                    ady = ady.getSigAdyacente();
-                }
-                l.eliminar(l.longitud());
-
-            }
-
-        }
-        return fin;
-    }
-
-    public Lista caminoMasLargo(Object origen, Object destino) {
-        Lista fin = new Lista();
-        NodoVert ori = ubicarVertice(origen);
-        if (ori != null) {
-            NodoVert dest = ubicarVertice(destino);
-            if (dest != null) {
-                fin = caminoMasLargoAux(ori, destino, fin, new Lista(), 0);
-            }
-        }
-        return fin;
-    }
      public Lista listarEnProfundidad() {
         Lista visitados = new Lista();
         //define un vertice donde empezar a recorrer
@@ -447,6 +534,7 @@ public class Grafo {
 
         return clon;
     }
+ 
 
     private NodoAdy adyacenteClon(Object elem, NodoVert clon, int etiqueta) {
         NodoAdy ret = new NodoAdy(null, 0);
@@ -468,172 +556,209 @@ public class Grafo {
         return clon;
     }
 
-    public Object obtenerLocacion(Object nombre) {
-        NodoVert n = ubicarVertice(nombre);
-        if (n != null) {
-            return n.getElem();
-        } else {
-            return null;
-        }
-    }
-    public boolean caminoPorXcantidadVuelo(Object origen, Object destino,int maxCantVuelos) {
-     
-     
+    //CAMINOS
+    
+    public boolean caminoPorXcantidadDeVertices(Object origen, Object destino, int maxCantVertices) {
+        /*este modulo devuelve v cuando es posible que un cliente que parte del origen
+     llege a destino en como maximo X vuelos*/
+
         Lista fin = new Lista();
+        Lista caminoAc = new Lista();
         boolean exito = false;
         NodoVert ori = ubicarVertice(origen);
         if (ori != null) {
             //si encuentro el origen, voy a buscar el destino
             NodoVert dest = ubicarVertice(destino);
             if (dest != null) {
-                fin =  caminoPorXcantidadVueloAux(ori,destino,fin,new Lista(),0,maxCantVuelos);
-                if (!fin.esVacia()){
-                    //si la lista no esta vacia quiere decir que existe el camino
-                   if (fin.longitud() <= maxCantVuelos){
-                       //si la longitud de la lista es menor que la cantidad maxima de vuelos indica 
-                       //que es posible llegar de origen a destino en como maximo maxCantVulos vuelos
-                       exito = true;
-                   }
+                boolean[] seguir = new boolean[1];
+                seguir[0] = true;
+                fin = caminoPorXcantidadVerticesAux(ori, destino, caminoAc, new Lista(), 0, maxCantVertices,seguir);
+                if (!seguir[0]){
+                    exito = true;
                 }
                 }
         }
-  
         return exito;
     }
     
 
-    private Lista caminoPorXcantidadVueloAux(NodoVert n, Object dest,Lista fin,Lista l,int cantVertices,int maxV) {
+    private Lista caminoPorXcantidadVerticesAux(NodoVert n, Object dest, Lista caminoAc, Lista fin, int cantVertices, int maxV, boolean[] seguir) {
+        //recorrido en profundidad, devuelve el primer camino que encuentra 
         if (n != null) {
-           
-            if (cantVertices <= maxV){ // este if es para no recorrer de mas el grafo
+
+            caminoAc.insertar(n.getElem(), caminoAc.longitud() + 1);
+
             if (n.getElem().equals(dest)) {
                 //si vertice n es igual al destino, hay camino
-                if (fin.esVacia() || fin.longitud() > cantVertices) {
-                    fin = l.clone();
-                    fin.insertar(dest, l.longitud() + 1);
-                }
+                seguir[0] = false;
+                fin = caminoAc.clone();
 
             } else {
-    
-                l.insertar(n.getElem(), l.longitud() + 1);
-
                 NodoAdy ady = n.getPrimerAdy();
-                while (ady != null) {
-                    if (l.localizar(ady.getVertice().getElem()) < 0) {
-                        fin = caminoPorXcantidadVueloAux(ady.getVertice(), dest, fin, l, cantVertices + 1,maxV);
+                while (ady != null && seguir[0]) {
+                    if (caminoAc.localizar(ady.getVertice().getElem()) < 0 && cantVertices < maxV) { //verifico que no se pase la cantidad de vertices visitados
+                        fin = caminoPorXcantidadVerticesAux(ady.getVertice(), dest, caminoAc, fin, cantVertices + 1, maxV, seguir);
                     }
                     ady = ady.getSigAdyacente();
                 }
-                l.eliminar(l.longitud());
-                
+                caminoAc.eliminar(caminoAc.longitud());
             }
-            }
-            }
-        
+
+        }
         return fin;
     }
-    public Lista caminoMasCortoPorAero(Object origen, Object destino) {
-        Object[] ret = new Object[2];
-        ret[0] = new Lista();
-        ret[1] = 0;
-        String s;
+
+     
+    public Lista caminoMasCortoPorVertices(Object origen, Object destino) {
+        /*Dados dos aeropuertos A y B, obtener el camino que llegue de A a B pasando por la
+        mínima cantidad de aeropuertos*/
+        Lista caminoActual = new Lista();
+        Lista caminoMasCorto = new Lista();
+      
+        NodoVert ori = ubicarVertice(origen); //ubica el origen
+        if (ori != null) {
+            NodoVert dest = ubicarVertice(destino); //ubica el destino
+            if (dest != null) {
+                
+                caminoMasCorto = caminoMasCortoPorVerticesAux(ori, destino,caminoActual,caminoMasCorto);
+            }
+        }
+        
+        return caminoMasCorto;
+    }
+   
+    private Lista caminoMasCortoPorVerticesAux(NodoVert n, Object dest, Lista caminoAc, Lista cMasCorto) {
+
+        if (n != null) {
+
+            caminoAc.insertar(n.getElem(), caminoAc.longitud() + 1);
+            System.out.println("visitados --> " + caminoAc.toString());
+            if (n.getElem().equals(dest)) {
+                cMasCorto = caminoAc.clone();
+
+            } else {
+                NodoAdy ady = n.getPrimerAdy();
+                while (ady != null) {
+                    if (caminoAc.localizar(ady.getVertice().getElem()) < 0) {//si no esta en la lista de visitados
+                        if (cMasCorto.esVacia() || caminoAc.longitud() + 1 < cMasCorto.longitud()) {
+                            cMasCorto = caminoMasCortoPorVerticesAux(ady.getVertice(), dest, caminoAc, cMasCorto);
+                        }
+
+                    }
+                    ady = ady.getSigAdyacente();
+                }
+
+            }
+            caminoAc.eliminar(caminoAc.longitud());
+
+        }
+        return cMasCorto;
+    }
+   
+    
+    public Lista caminoMasCortoPorminutossquePasaporX(Object origen, Object destino, Object intermedio){
+      //Asumi que el camino mas rapido sea por la cantidad de minutos
+     int[] ret = new int[2];
+     ret[0] = 0;
+     ret[1] = 0;
+     Lista listR = new Lista();
+     Lista caminoActual = new Lista();
+        
         NodoVert ori = ubicarVertice(origen);
         if (ori != null) {
             NodoVert dest = ubicarVertice(destino);
             if (dest != null) {
-                ret = caminoMasCortoPorAeroAux(ori, destino, ret, new Lista(), 1);
+                listR = caminoMasCortoPorminutosquePasaporXAux(ori, destino,intermedio, caminoActual, listR, ret);
             }
         }
-            Lista recorrido = (Lista) ret[0];
-            recorrido.insertar(ret[1], recorrido.longitud() + 1);
-            
-//            if (!recorrido.esVacia()) {
-//                s = "El camino mas corto de " + origen + " hasta " + destino + " es: " + recorrido.toString() + " en: " + ret[1] + " kilometros";
-//            } else {
-//                s = "No existe camino";
-//            }
-
         
-        return recorrido;
+        return listR;
+    
     }
     
-    
-    public Object[] caminoMasCortoPorAeroAux(NodoVert n, Object dest, Object[] ret, Lista l, int cantAeropuertos){
+    private Lista caminoMasCortoPorminutosquePasaporXAux(NodoVert n, Object dest, Object intermedio, Lista caminoAc, Lista masCorto, int[] cantMinutos) {
         if (n != null) {
-            //si vertice n es igual al destino, hay camino
 
-            if (n.getElem().equals(dest)) {
-                Lista lis = (Lista) ret[0];
-                if ((lis.esVacia()) || (int) ret[1] > cantAeropuertos) {
-                    lis = l.clone();
-                    lis.insertar(n.getElem(), lis.longitud() + 1);
-                    ret[0] = lis;
-                    ret[1] = cantAeropuertos;
+            caminoAc.insertar(n.getElem(), caminoAc.longitud() + 1);
+            if (n.getElem().equals(dest) && caminoAc.localizar(intermedio) != -1) {
+                if (cantMinutos[1] == 0 || cantMinutos[0] < cantMinutos[1]) {
+                    //si es el primer camino encontrado o si  la cantidad de minutos del camino mas corto es mayor a la cantidad de 
+                    //minutos del actual
+                    masCorto = caminoAc.clone();
+                    cantMinutos[1] = cantMinutos[0];
                 }
+                //si vertice n es igual al destino y si el aeropuerto del medio se encuentra en la lista
+
             } else {
-
-                l.insertar(n.getElem(), l.longitud() + 1);
-
                 NodoAdy ady = n.getPrimerAdy();
                 while (ady != null) {
-                    if (l.localizar(ady.getVertice().getElem()) < 0) {
-                        ret = caminoMasCortoPorAeroAux(ady.getVertice(), dest, ret, l, cantAeropuertos+1);
+                    if (caminoAc.localizar(ady.getVertice().getElem()) < 0) { //si el nodo a visitar no se encuentra en la lista de visitados
+                        if (cantMinutos[0] + ady.getEtiqueta() < cantMinutos[1] || (cantMinutos[1] == 0)) {
+                            cantMinutos[0] = cantMinutos[0] + ady.getEtiqueta(); //a la ida va sumando los minutos
+                            masCorto = caminoMasCortoPorMinutosAux(ady.getVertice(), dest, caminoAc, masCorto, cantMinutos);
+                            cantMinutos[0] = cantMinutos[0] - ady.getEtiqueta(); //a la vuelta va restando los minutos que habia sumado
+                        }
                     }
                     ady = ady.getSigAdyacente();
                 }
-                l.eliminar(l.longitud());
             }
+            caminoAc.eliminar(caminoAc.longitud());
         }
-        return ret;
+        return masCorto;
     }
     
+    
+
     public Lista caminoMasCortoPorMinutos(Object origen, Object destino) {
-        Object[] ret = new Object[2];
-        ret[0] = new Lista();
-        ret[1] = 0;
-        
+        Lista caminoMasCorto = new Lista();
         NodoVert ori = ubicarVertice(origen);
         if (ori != null) {
             NodoVert dest = ubicarVertice(destino);
             if (dest != null) {
-                ret = caminoMasCortoPorMinutosAux(ori, destino, ret, new Lista(), 0);
+                int[] ret = new int[2];
+                Lista caminoAc = new Lista();
+                ret[0] = 0;
+                ret[1] = 0;
+                caminoMasCorto = caminoMasCortoPorMinutosAux(ori, destino, caminoAc, caminoMasCorto, ret);
             }
-        }
-        Lista recorrido = (Lista) ret[0];
-        //en el ultimo elemento de la lista va los kilometros
-        recorrido.insertar(ret[1], recorrido.longitud() + 1);
-
-        return recorrido;
     }
+        return caminoMasCorto;
+    }
+    
 
-    private Object[] caminoMasCortoPorMinutosAux(NodoVert n, Object dest, Object[] ret, Lista l, int minutos) {
+    private Lista caminoMasCortoPorMinutosAux(NodoVert n, Object dest, Lista caminoAc, Lista cMasCorto, int[] cantMinutos) {
+        //cantMinutos es un arreglo que en la posicion 0 lleva la cantidad de minutos del caminoActual
+        //y en la posicion 1 la cantidad de minutos del camino mas corto
         if (n != null) {
-            //si vertice n es igual al destino, hay camino
+            caminoAc.insertar(n.getElem(), caminoAc.longitud() + 1);
 
-            if (n.getElem().equals(dest)) {
-                Lista lis = (Lista) ret[0];
-                if ((lis.esVacia()) || (int) ret[1] > minutos) {
-                    lis = l.clone();
-                    lis.insertar(n.getElem(), lis.longitud() + 1);
-                    ret[0] = lis;
-                    ret[1] = minutos;
+            if (n.getElem().equals(dest)) { //encontro el camino
+
+                if (cantMinutos[1] == 0 || cantMinutos[0] < cantMinutos[1]) {
+                    //si es el primer camino encontrado o si  la cantidad de minutos del camino mas corto es mayor a la cantidad de 
+                    //minutos del actual
+                    cMasCorto = caminoAc.clone();
+                    cantMinutos[1] = cantMinutos[0];
                 }
 
             } else {
 
-                l.insertar(n.getElem(), l.longitud() + 1);
-
                 NodoAdy ady = n.getPrimerAdy();
                 while (ady != null) {
-                    if (l.localizar(ady.getVertice().getElem()) < 0) {
-                        ret = caminoMasCortoPorMinutosAux(ady.getVertice(), dest, ret, l, minutos + ady.getEtiqueta());
+                    if (caminoAc.localizar(ady.getVertice().getElem()) < 0) { //si el nodo a visitar no se encuentra en la lista de visitados
+                        if (cantMinutos[0] + ady.getEtiqueta() < cantMinutos[1] || (cantMinutos[1] == 0)) {
+                            cantMinutos[0] = cantMinutos[0] + ady.getEtiqueta(); //a la ida va sumando los minutos
+                            cMasCorto = caminoMasCortoPorMinutosAux(ady.getVertice(), dest, caminoAc, cMasCorto, cantMinutos);
+                            cantMinutos[0] = cantMinutos[0] - ady.getEtiqueta(); //a la vuelta va restando los minutos que habia sumado
+                        }
                     }
                     ady = ady.getSigAdyacente();
                 }
-                l.eliminar(l.longitud());
+
             }
+            caminoAc.eliminar(caminoAc.longitud());
         }
-        return ret;
+        return cMasCorto;
     }
 
 }

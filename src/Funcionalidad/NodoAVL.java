@@ -17,6 +17,10 @@ package Funcionalidad;
      private NodoAVL izquierdo;
      private NodoAVL derecho;
      
+     
+     public NodoAVL(){
+         
+     }
      public NodoAVL (Comparable clav, Object d){
          this.clave = clav;
          this.dato = d;
@@ -24,9 +28,7 @@ package Funcionalidad;
          this.izquierdo = null;
          this.derecho = null;
      }
-     public Object obtenerDato(){
-         return this.dato;
-     }
+    
 
     public Comparable getClave() {
         return clave;
@@ -34,6 +36,13 @@ package Funcionalidad;
 
     public void setElem(Comparable clav) {
         this.clave = clav;
+    }
+    
+    public void setDato(Object d){
+        this.dato = d;
+    }
+    public Object obtenerDato(){
+        return this.dato;
     }
 
     public int getAltura() {
@@ -50,10 +59,12 @@ package Funcionalidad;
 
     public void setIzquierdo(NodoAVL izquierdo) {
         this.izquierdo = izquierdo;
-        if (izquierdo != null){
-            izquierdo.recalcularAltura();
-        }
-        this.recalcularAltura();
+        
+//        if (izquierdo != null){
+//            //una vez que se agrego un hijo, al hizo izq recalculo la altura
+//            izquierdo.recalcularAltura();
+//        }
+//        this.recalcularAltura();
     }
 
     public NodoAVL getDerecho() {
@@ -62,10 +73,10 @@ package Funcionalidad;
 
     public void setDerecho(NodoAVL derecho) {
         this.derecho = derecho;
-        if (derecho != null){
-            derecho.recalcularAltura();
-        }
-        this.recalcularAltura();
+//        if (derecho != null){
+//            derecho.recalcularAltura();
+//        }
+//   this.recalcularAltura();
     }
     
     public void recalcularAltura() {
@@ -73,11 +84,11 @@ package Funcionalidad;
             if (this.getDerecho() != null) {
                 altura = 1 + Math.max(this.getIzquierdo().getAltura(), this.getDerecho().getAltura());
             } else {
-                altura = 1 + this.getIzquierdo().getAltura();
+                altura = 1 + this.izquierdo.altura;
             }
         } else {
             if (this.getDerecho() != null) {
-                altura = 1 + this.getDerecho().getAltura();
+                altura = 1 + this.derecho.altura;
             } else {
                 if (this.getDerecho() == null) {
                     altura = 0;
@@ -86,8 +97,11 @@ package Funcionalidad;
         }
         
     }
- 
- 
+     
+  
 }
+ 
+ 
+
             
           
